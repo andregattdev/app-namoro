@@ -1,0 +1,120 @@
+<section class="cadastro-page">
+	<div class="cadastro-intro">
+		<span class="eyebrow">primeiro passo</span>
+		<h1>Crie seu perfil.</h1>
+		<p>Conte um pouco sobre você para começar a encontrar conexões com sentido.</p>
+		<a class="back-link" routerLink="/login">Já tenho uma conta</a>
+	</div>
+
+	<form class="cadastro-card" [formGroup]="cadastroForm" (ngSubmit)="cadastrar()" novalidate>
+		<div class="form-heading">
+			<h2>Seus dados</h2>
+			<span>todos os campos são obrigatórios</span>
+		</div>
+
+		<div class="form-grid">
+			<mat-form-field appearance="outline" class="field-wide">
+				<mat-label>Nome completo</mat-label>
+				<input matInput formControlName="nome" autocomplete="name" />
+				@if (cadastroForm.controls.nome.hasError('required') && cadastroForm.controls.nome.touched) {
+					<mat-error>Informe seu nome.</mat-error>
+				} @else if (cadastroForm.controls.nome.hasError('minlength')) {
+					<mat-error>Use pelo menos 3 caracteres.</mat-error>
+				}
+			</mat-form-field>
+
+			<mat-form-field appearance="outline" class="field-wide">
+				<mat-label>E-mail</mat-label>
+				<input matInput type="email" formControlName="email" autocomplete="email" />
+				@if (cadastroForm.controls.email.hasError('required') && cadastroForm.controls.email.touched) {
+					<mat-error>Informe seu e-mail.</mat-error>
+				} @else if (cadastroForm.controls.email.hasError('email')) {
+					<mat-error>Digite um e-mail válido.</mat-error>
+				}
+			</mat-form-field>
+
+			<mat-form-field appearance="outline">
+				<mat-label>Data de nascimento</mat-label>
+				<input matInput type="date" [max]="dataMaxima" formControlName="dataNascimento" />
+				@if (cadastroForm.controls.dataNascimento.hasError('required') && cadastroForm.controls.dataNascimento.touched) {
+					<mat-error>Informe sua data de nascimento.</mat-error>
+				} @else if (cadastroForm.controls.dataNascimento.hasError('menorDeIdade')) {
+					<mat-error>Você precisa ter pelo menos 18 anos.</mat-error>
+				} @else if (cadastroForm.controls.dataNascimento.hasError('dataInvalida')) {
+					<mat-error>Informe uma data válida.</mat-error>
+				}
+			</mat-form-field>
+
+			<mat-form-field appearance="outline">
+				<mat-label>Gênero</mat-label>
+				<mat-select formControlName="generoId">
+					@for (genero of generos(); track genero.id) {
+						<mat-option [value]="genero.id">{{ genero.descricao }}</mat-option>
+					}
+				</mat-select>
+				@if (carregandoGeneros()) {
+					<mat-hint>Carregando opções...</mat-hint>
+				} @else if (erroGeneros()) {
+					<mat-error>Não foi possível carregar os gêneros.</mat-error>
+				} @else if (cadastroForm.controls.generoId.invalid && cadastroForm.controls.generoId.touched) {
+					<mat-error>Selecione uma opção.</mat-error>
+				}
+			</mat-form-field>
+
+			<mat-form-field appearance="outline" class="field-wide">
+				<mat-label>Ocupação ou profissão</mat-label>
+				<input matInput formControlName="profissao" placeholder="Ex.: designer, estudante, empreendedora" />
+			</mat-form-field>
+
+			<mat-form-field appearance="outline" class="field-wide">
+				<mat-label>Interesses e hobbies</mat-label>
+				<textarea matInput formControlName="interesses" rows="2" placeholder="Ex.: viajar, cozinhar, esportes, leitura"></textarea>
+			</mat-form-field>
+
+			<mat-form-field appearance="outline" class="field-wide">
+				<mat-label>Gostos musicais e culturais</mat-label>
+				<textarea matInput formControlName="gostosMusicaisCulturais" rows="2" placeholder="Ex.: rock, samba, cinema, séries"></textarea>
+			</mat-form-field>
+
+			<mat-form-field appearance="outline" class="field-wide">
+				<mat-label>Preferências pessoais</mat-label>
+				<textarea matInput formControlName="preferenciasPessoais" rows="2" placeholder="Ex.: pets, praia, trilhas, atividades ao ar livre"></textarea>
+			</mat-form-field>
+
+			<mat-form-field appearance="outline">
+				<mat-label>Senha</mat-label>
+				<input matInput [type]="mostrarSenha() ? 'text' : 'password'" formControlName="senha" autocomplete="new-password" />
+				<button mat-icon-button matSuffix type="button" (click)="mostrarSenha.set(!mostrarSenha())"
+					[attr.aria-label]="mostrarSenha() ? 'Ocultar senha' : 'Mostrar senha'">
+					<mat-icon>{{ mostrarSenha() ? 'visibility_off' : 'visibility' }}</mat-icon>
+				</button>
+				@if (cadastroForm.controls.senha.hasError('required') && cadastroForm.controls.senha.touched) {
+					<mat-error>Informe uma senha.</mat-error>
+				} @else if (cadastroForm.controls.senha.hasError('minlength')) {
+					<mat-error>Use pelo menos 8 caracteres.</mat-error>
+				} @else if (cadastroForm.controls.senha.hasError('pattern')) {
+					<mat-error>Inclua uma maiúscula e um caractere especial.</mat-error>
+				}
+			</mat-form-field>
+
+			<mat-form-field appearance="outline">
+				<mat-label>Confirme sua senha</mat-label>
+				<input matInput [type]="mostrarConfirmacaoSenha() ? 'text' : 'password'" formControlName="confirmarSenha" autocomplete="new-password" />
+				<button mat-icon-button matSuffix type="button" (click)="mostrarConfirmacaoSenha.set(!mostrarConfirmacaoSenha())"
+					[attr.aria-label]="mostrarConfirmacaoSenha() ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'">
+					<mat-icon>{{ mostrarConfirmacaoSenha() ? 'visibility_off' : 'visibility' }}</mat-icon>
+				</button>
+				@if (cadastroForm.hasError('senhasDiferentes') && cadastroForm.controls.confirmarSenha.touched) {
+					<mat-error>As senhas não coincidem.</mat-error>
+				}
+			</mat-form-field>
+		</div>
+
+		<div class="form-footer">
+			<span class="privacy-note">Seus dados ficam protegidos e não serão publicados.</span>
+			<button mat-flat-button color="primary" type="submit" [disabled]="salvando()">
+				{{ salvando() ? 'Criando perfil...' : 'Criar meu perfil' }}
+			</button>
+		</div>
+	</form>
+</section>

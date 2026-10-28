@@ -1,0 +1,256 @@
+<main class="dashboard-page" [class]="temaGenero()">
+	<header class="dashboard-header">
+		<div>
+			<span class="eyebrow">Aqui você é LIVRE!</span><br>
+			<h1>Olá, {{ usuario()?.apelido || usuario()?.nome || 'pessoa' }}!</h1><br>
+			<p>Veja as conexões que combinam com o que você procura.</p>
+		</div>
+		<nav class="message-badges" aria-label="Mensagens recebidas">
+			<button mat-icon-button type="button" matBadgeColor="accent"
+				[matBadge]="mensagensUsuarios()" [matBadgeHidden]="mensagensUsuarios() === 0"
+				matBadgeDescription="Mensagens não lidas de usuários" aria-label="Mensagens de usuários"
+				(click)="abrirMensagensUsuarios()">
+				<mat-icon>chat_bubble_outline</mat-icon>
+			</button>
+			<button mat-icon-button type="button" matBadgeColor="warn"
+				[matBadge]="avisosPendentes().length" [matBadgeHidden]="avisosPendentes().length === 0"
+				matBadgeDescription="Avisos de convivência e pendências do perfil" aria-label="Avisos de convivência e perfil"
+				(click)="abrirAvisos()">
+				<mat-icon>notifications_none</mat-icon>
+			</button>
+			<button mat-icon-button type="button" matBadgeColor="warn"
+				matBadge="!" matBadgeDescription="Lembretes de respeito e convivência"
+				aria-label="Lembretes de respeito e convivência" (click)="abrirAvisos()">
+				<mat-icon>campaign</mat-icon>
+			</button>
+		</nav>
+		<a mat-stroked-button [routerLink]="['/match']">
+			<mat-icon>favorite_border</mat-icon>
+				Conversas ({{ matches().length }})
+		</a>
+		<button mat-stroked-button type="button" (click)="sair()" aria-label="Sair">
+			<mat-icon>logout</mat-icon>
+			Sair
+		</button>
+	</header>
+
+	<section class="messages-section" aria-labelledby="messages-title">
+		<div class="section-heading">
+			<div>
+				<span class="eyebrow">caixa de entrada</span>
+				<h2 id="messages-title">Mensagens recebidas</h2>
+			</div>
+			<span class="count-badge">{{ conversas().length }}</span>
+		</div>
+
+		@if (conversas().length) {
+			<div class="messages-list">
+				@for (conversa of conversas(); track conversa.tipoRemetente + ':' + conversa.remetenteId) {
+					<div class="message-item" [class.unread]="conversa.temNaoLida">
+						<button class="message-open" type="button" (click)="abrirMensagem(conversa)">
+							<span class="message-icon" [class.admin-message]="conversa.tipoRemetente === 'ADMIN'">
+								<mat-icon>{{ conversa.tipoRemetente === 'ADMIN' ? 'campaign' : 'chat_bubble' }}</mat-icon>
+							</span>
+							<span class="message-content">
+								<strong>{{ conversa.remetente }}</strong>
+								<span>{{ conversa.conteudo }}</span>
+								<small>{{ conversa.quantidade }} mensagem{{ conversa.quantidade === 1 ? '' : 'ns' }} nesta conversa</small>
+							</span>
+							@if (conversa.temNaoLida) {
+								<span class="unread-dot" aria-label="Não lida"></span>
+							}
+						</button>
+						<button class="message-delete" type="button" (click)="apagarNotificacao(conversa, $event)"
+							aria-label="Excluir notificação" title="Excluir notificação">
+							<mat-icon>delete_outline</mat-icon>
+						</button>
+					</div>
+				}
+			</div>
+		} @else {
+			<div class="empty-panel">
+				<mat-icon>mark_email_read</mat-icon>
+				<p>Você não tem mensagens novas.</p>
+			</div>
+		}
+	</section>
+
+	@if (carregando()) {
+		<section class="state-panel" aria-live="polite">Carregando suas preferências...</section>
+	} @else if (erro()) {
+		<section class="state-panel state-panel-error" aria-live="polite">
+			Não foi possível carregar seu perfil. Entre novamente para continuar.
+		</section>
+	} @else {
+		<section class="preferences-section" aria-labelledby="preferences-title">
+			<form class="profile-details" [formGroup]="perfilForm" (ngSubmit)="salvarPerfil()" aria-labelledby="profile-details-title">
+				<div class="section-heading">
+					<div>
+						<span class="eyebrow">sobre você</span>
+						<h2 id="profile-details-title">Seu perfil</h2>
+					</div>
+					@if (!editandoPerfil()) {
+						<button mat-stroked-button type="button" (click)="editarPerfil()">
+							<mat-icon>edit</mat-icon>
+							Editar perfil
+						</button>
+					}
+				</div>
+				<div class="profile-details-grid">
+					<mat-form-field appearance="outline">
+						<mat-label>
+							Como você quer ser chamado?
+							<mat-icon class="field-info" matTooltip="Opcional. Esse nome será mostrado aos outros usuários."
+								aria-label="O apelido é opcional e será mostrado aos outros usuários">info_outline</mat-icon>
+						</mat-label>
+						<input matInput formControlName="apelido" maxlength="80" placeholder="Ex.: Alex" />
+					</mat-form-field>
+					<mat-form-field appearance="outline">
+						<mat-label>Ocupação ou profissão</mat-label>
+						<input matInput formControlName="profissao" placeholder="Ex.: designer, estudante" />
+					</mat-form-field>
+					<mat-form-field appearance="outline">
+						<mat-label>Interesses e hobbies</mat-label>
+						<textarea matInput formControlName="interesses" rows="2" placeholder="Ex.: viajar, cozinhar, esportes"></textarea>
+					</mat-form-field>
+					<mat-form-field appearance="outline">
+						<mat-label>Gostos musicais e culturais</mat-label>
+						<textarea matInput formControlName="gostosMusicaisCulturais" rows="2" placeholder="Ex.: rock, cinema, séries"></textarea>
+					</mat-form-field>
+					<mat-form-field appearance="outline">
+						<mat-label>Preferências pessoais</mat-label>
+						<textarea matInput formControlName="preferenciasPessoais" rows="2" placeholder="Ex.: pets, praia, trilhas"></textarea>
+					</mat-form-field>
+				</div>
+				<div class="profile-actions">
+					@if (perfilSalvo()) {
+						<span class="profile-success" role="status">Perfil atualizado com sucesso.</span>
+					} @else {
+						<span>Compartilhe seus gostos para encontrar mais afinidades.</span>
+					}
+					@if (editandoPerfil()) {
+						<button mat-flat-button color="primary" type="submit" [disabled]="salvandoPerfil()">
+							<mat-icon>save</mat-icon>
+							{{ salvandoPerfil() ? 'Salvando...' : 'Salvar meu perfil' }}
+						</button>
+					}
+				</div>
+				@if (erroPerfil()) {
+					<p class="preference-error" role="alert">Não foi possível salvar seu perfil.</p>
+				}
+			</form>
+
+			<section class="gender-section" aria-labelledby="gender-title">
+				<div class="section-heading">
+					<div>
+						<span class="eyebrow">sua identidade</span>
+						<h2 id="gender-title">Gênero</h2>
+					</div>
+				</div>
+				<div class="gender-editor">
+					<mat-form-field appearance="outline">
+						<mat-label>Selecione seu gênero</mat-label>
+						<mat-select [formControl]="generoForm" (selectionChange)="salvarGenero()"
+							[disabled]="salvandoGenero()">
+							@for (genero of generos(); track genero.id) {
+								<mat-option [value]="genero.id">{{ genero.descricao }}</mat-option>
+							}
+						</mat-select>
+					</mat-form-field>
+					@if (salvandoGenero()) {
+						<span class="profile-status">Salvando...</span>
+					}
+				</div>
+				@if (generoSalvo()) {
+					<p class="profile-success" role="status">Gênero atualizado com sucesso.</p>
+				}
+				@if (erroGenero()) {
+					<p class="preference-error" role="alert">Não foi possível atualizar seu gênero.</p>
+				}
+			</section>
+
+			<div class="section-heading">
+				<div>
+					<span class="eyebrow">suas escolhas</span>
+					<h2 id="preferences-title">Gêneros que você procura</h2>
+				</div>
+				<span class="count-badge">{{ usuario()?.generosProcurados?.length ?? 0 }}</span>
+			</div>
+
+			@if (usuario()?.generosProcurados?.length) {
+				<p class="preference-summary">{{ usuario()?.generosProcurados?.length }} gênero(s) selecionado(s)</p>
+			} @else {
+				<p class="preference-summary">Escolha um ou vários gêneros para encontrar perfis compatíveis.</p>
+			}
+
+			<div class="preference-editor">
+				<div class="genre-options" aria-label="Gêneros que procuro">
+					@for (genero of generos(); track genero.id) {
+						<mat-checkbox [checked]="preferenciasForm.value.includes(genero.id)"
+							(change)="preferenciasForm.setValue($event.checked ? [...preferenciasForm.value, genero.id] : preferenciasForm.value.filter(id => id !== genero.id))">
+							{{ genero.descricao }}
+						</mat-checkbox>
+					}
+				</div>
+				<button mat-flat-button color="primary" type="button" (click)="salvarPreferencias()"
+					[disabled]="salvandoPreferencias() || erroPreferencias()">
+					<mat-icon>save</mat-icon>
+					{{ salvandoPreferencias() ? 'Salvando...' : 'Salvar preferências' }}
+				</button>
+			</div>
+
+			@if (erroPreferencias()) {
+				<p class="preference-error" role="alert">Não foi possível atualizar suas preferências.</p>
+			}
+		</section>
+
+		<section class="matches-section" aria-labelledby="matches-title">
+			<div class="section-heading">
+				<div>
+					<span class="eyebrow">possibilidades</span>
+					<h2 id="matches-title">Encontros para você</h2>
+				</div>
+				<span class="count-badge">{{ sugestoes().length }}</span>
+			</div>
+
+			@if (sugestoes().length) {
+				<div class="matches-grid">
+					@for (match of sugestoes(); track match.id) {
+						<article class="match-card">
+							<div class="avatar"><mat-icon>person</mat-icon></div>
+							<div class="match-card-content">
+								<h3>{{ match.apelido || match.nome }}</h3>
+								<p>{{ match.genero?.descricao ?? 'Perfil disponível' }}</p>
+								@if (match.profissao || match.interesses || match.gostosMusicaisCulturais || match.preferenciasPessoais) {
+									<div class="match-interests">
+										@if (match.profissao) { <span><strong>Profissão:</strong> {{ match.profissao }}</span> }
+										@if (match.interesses) { <span><strong>Hobbies:</strong> {{ match.interesses }}</span> }
+										@if (match.gostosMusicaisCulturais) { <span><strong>Cultura:</strong> {{ match.gostosMusicaisCulturais }}</span> }
+										@if (match.preferenciasPessoais) { <span><strong>Preferências:</strong> {{ match.preferenciasPessoais }}</span> }
+									</div>
+								}
+							</div>
+							<button mat-icon-button type="button" (click)="alternarCurtida(match)"
+								[disabled]="curtindo() === match.id"
+								[attr.aria-label]="isCurtido(match.id) ? 'Desfazer curtida de ' + (match.apelido || match.nome) : 'Curtir ' + (match.apelido || match.nome)">
+								<mat-icon [class.liked-heart]="isCurtido(match.id)">
+									{{ isCurtido(match.id) ? 'favorite' : 'favorite_border' }}
+								</mat-icon>
+							</button>
+							@if (matchesConfirmados().has(match.id)) {
+								<a mat-icon-button [routerLink]="['/match']" [attr.aria-label]="'Abrir conversa com ' + (match.apelido || match.nome)">
+									<mat-icon>chat</mat-icon>
+								</a>
+							}
+						</article>
+					}
+				</div>
+			} @else {
+				<div class="empty-panel empty-matches">
+					<mat-icon>search</mat-icon>
+					<p>Ainda não encontramos um encontro compatível. Tente atualizar suas preferências.</p>
+				</div>
+			}
+		</section>
+	}
+</main>

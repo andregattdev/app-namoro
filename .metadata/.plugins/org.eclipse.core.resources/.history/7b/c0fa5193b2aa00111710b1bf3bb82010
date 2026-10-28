@@ -1,0 +1,58 @@
+package com.andregattermeyer.api_projto_encontro_casual.controller;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.LocalDate;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import com.andregattermeyer.api_projto_encontro_casual.model.Genero;
+import com.andregattermeyer.api_projto_encontro_casual.model.Usuario;
+import com.andregattermeyer.api_projto_encontro_casual.service.UsuarioService;
+
+@WebMvcTest(CadastroUsuarioController.class)
+class CadastroUsuarioControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private UsuarioService usuarioService;
+
+    @Test
+    void deveCadastrarUsuarioSemFotosNaEtapaInicial() throws Exception {
+        Usuario usuario = new Usuario();
+        usuario.setId(1L);
+        usuario.setNome("Ana");
+        usuario.setApelido("Aninha");
+        usuario.setEmail("ana@email.com");
+        usuario.setSenha("Senha@123");
+        usuario.setDataNascimento(LocalDate.of(1998, 5, 15));
+        usuario.setGeneros(Set.of(Genero.FEMININO));
+
+        when(usuarioService.salvar(any(Usuario.class))).thenReturn(usuario);
+
+        String payload = "{"
+                + "\"nome\":\"Ana\","
+                + "\"apelido\":\"Aninha\","
+                + "\"email\":\"ana@email.com\","
+                + "\"senha\":\"Senha@123\","
+                + "\"dataNascimento\":\"1998-05-15\","
+                + "\"generos\":[\"FEMININO\"]"
+                + "}";
+
+        mockMvc.perform(post("/cadastro/usuario")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload))
+                .andExpect(status().isCreated());
+    }
+}

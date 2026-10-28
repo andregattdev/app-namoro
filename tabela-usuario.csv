@@ -1,0 +1,5 @@
+﻿Tabela,Campos,Relacionamentos
+Usuario,"id, nome, email, senha_hash, data_nascimento, genero, data_criacao","1:N com Fotos, Preferencias"
+Fotos,"id, usuario_id, url, ordem",FK → Usuario.id
+Preferencias,"id, usuario_id, faixa_etaria_min, faixa_etaria_max, distancia_max_km, interesses",FK → Usuario.id
+Verificacao,"id, usuario_id, tipo (email, sms, documento), status",FK → Usuario.id

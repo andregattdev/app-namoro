@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-ApiEncontrosCasuaisApplication<api-encontros-casuais>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.andregattermeyer.api_encontros_casuais.ApiEncontrosCasuaisApplication",
+            "projectName": "api-encontros-casuais",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

@@ -1,0 +1,5 @@
+package com.andregattermeyer.api_projto_encontro_casual.model;
+
+public class Match {
+
+}

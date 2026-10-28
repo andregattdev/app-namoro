@@ -1,0 +1,94 @@
+<main class="match-page">
+	<header class="match-header">
+		<div>
+			<span class="eyebrow">conexões</span>
+			<h1>Converse com seus matches</h1>
+			<p>Escolha uma conexão para começar a conversa.</p>
+		</div>
+		<a mat-stroked-button routerLink="/dashboard">
+			<mat-icon>arrow_back</mat-icon>
+			Voltar
+		</a>
+	</header>
+
+	@if (erro()) {
+		<p class="error-message" role="alert">{{ erro() }}</p>
+	}
+
+	@if (carregandoMatches()) {
+		<section class="empty-state">Carregando seus matches...</section>
+	} @else if (!matches().length) {
+		<section class="empty-state">
+			<mat-icon>favorite_border</mat-icon>
+			<h2>Nenhum match encontrado</h2>
+			<p>Quando houver uma conexão compatível, ela aparecerá aqui.</p>
+		</section>
+	} @else {
+		<section class="chat-layout">
+			<aside class="matches-panel" aria-label="Seus matches">
+				<h2>Seus matches</h2>
+				<div class="match-list">
+					@for (match of matches(); track match.id) {
+						<button class="match-item" [class.selected]="matchSelecionado()?.id === match.id"
+							type="button" (click)="selecionarMatch(match)">
+							<span class="avatar">{{ (match.apelido || match.nome).charAt(0).toUpperCase() }}</span>
+							<span class="match-name">{{ match.apelido || match.nome }}</span>
+							<mat-icon>chevron_right</mat-icon>
+						</button>
+					}
+				</div>
+			</aside>
+
+			@if (matchSelecionado(); as match) {
+				<section class="conversation" aria-label="Conversa">
+					<header class="conversation-header">
+						<span class="avatar large">{{ (match.apelido || match.nome).charAt(0).toUpperCase() }}</span>
+						<div>
+							<h2>{{ match.apelido || match.nome }}</h2>
+							<span>Match ativo</span>
+							@if (match.profissao || match.interesses || match.gostosMusicaisCulturais || match.preferenciasPessoais) {
+								<div class="conversation-profile">
+									@if (match.profissao) { <span><strong>Profissão:</strong> {{ match.profissao }}</span> }
+									@if (match.interesses) { <span><strong>Hobbies:</strong> {{ match.interesses }}</span> }
+									@if (match.gostosMusicaisCulturais) { <span><strong>Cultura:</strong> {{ match.gostosMusicaisCulturais }}</span> }
+									@if (match.preferenciasPessoais) { <span><strong>Preferências:</strong> {{ match.preferenciasPessoais }}</span> }
+								</div>
+							}
+						</div>
+						<button mat-icon-button type="button" (click)="apagarConversa()"
+							[disabled]="apagandoConversa()" [attr.aria-label]="'Apagar conversa com ' + (match.apelido || match.nome)"
+							title="Apagar conversa">
+							<mat-icon>delete_outline</mat-icon>
+						</button>
+					</header>
+
+					<div class="messages" aria-live="polite">
+						@if (carregandoMensagens()) {
+							<p class="conversation-empty">Carregando conversa...</p>
+						} @else if (!mensagens().length) {
+							<p class="conversation-empty">Ainda não há mensagens. Diga olá!</p>
+						} @else {
+							@for (mensagem of mensagens(); track mensagem.id) {
+								<div class="message-row" [class.mine]="souEu(mensagem)">
+									<div class="bubble">
+										<span>{{ mensagem.conteudo }}</span>
+										<time>{{ mensagem.dataEnvio | date:'HH:mm' }}</time>
+									</div>
+								</div>
+							}
+						}
+					</div>
+
+					<form class="composer" (ngSubmit)="enviarMensagem()">
+						<textarea name="texto" [(ngModel)]="texto" maxlength="2000"
+							placeholder="Escreva uma mensagem..." rows="2" aria-label="Mensagem"></textarea>
+						<button mat-flat-button color="primary" type="submit" [disabled]="!texto.trim() || enviando()">
+							<mat-icon>send</mat-icon>
+							Enviar
+						</button>
+					</form>
+				</section>
+			}
+		</section>
+	}
+</main>

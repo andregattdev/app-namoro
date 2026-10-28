@@ -1,0 +1,4 @@
+﻿Tabela,Campos,Relacionamentos
+Match,"id, usuario_a_id, usuario_b_id, data_match, status (pendente, ativo, bloqueado)",FK → Usuario.id (duplo)
+Swipe,"id, usuario_id, alvo_id, tipo (like, dislike), data",FK → Usuario.id
+Reputacao,"id, usuario_id, score_confiança, feedbacks_positivos, feedbacks_negativos",FK → Usuario.id

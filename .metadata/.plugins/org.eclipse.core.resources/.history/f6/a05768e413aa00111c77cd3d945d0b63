@@ -1,0 +1,97 @@
+package com.andregattermeyer.api_projto_encontro_casual.controller;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.andregattermeyer.api_projto_encontro_casual.dto.FotoUsuarioDTO;
+import com.andregattermeyer.api_projto_encontro_casual.dto.UsuarioCadastroDTO;
+import com.andregattermeyer.api_projto_encontro_casual.dto.UsuarioRespostaDTO;
+import com.andregattermeyer.api_projto_encontro_casual.model.FotoUsuario;
+import com.andregattermeyer.api_projto_encontro_casual.model.Usuario;
+import com.andregattermeyer.api_projto_encontro_casual.service.UsuarioService;
+
+@RestController
+@RequestMapping("/cadastro")
+public class CadastroUsuarioController {
+
+    private final UsuarioService usuarioService;
+
+    public CadastroUsuarioController(UsuarioService usuarioService) {
+        this.usuarioService = usuarioService;
+    }
+
+    @PostMapping("/usuario")
+    public ResponseEntity<UsuarioRespostaDTO> cadastrarUsuario(@RequestBody UsuarioCadastroDTO dto) {
+        try {
+            Usuario usuario = new Usuario();
+            usuario.setNome(dto.getNome());
+            usuario.setApelido(dto.getApelido());
+            usuario.setEmail(dto.getEmail());
+            usuario.setSenha(dto.getSenha());
+            usuario.setDataNascimento(dto.getDataNascimento());
+            usuario.setGeneros(dto.getGeneros());
+            usuario.setPerfilAtivo(false);
+
+            Usuario salvo = usuarioService.salvar(usuario);
+            UsuarioRespostaDTO resposta = converterParaResposta(salvo);
+            return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/usuario/{usuarioId}/fotos")
+    public ResponseEntity<UsuarioRespostaDTO> adicionarFotos(
+            @RequestBody List<FotoUsuarioDTO> fotos,
+            @org.springframework.web.bind.annotation.PathVariable Long usuarioId) {
+        try {
+            Usuario usuario = usuarioService.buscarPorId(usuarioId)
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+            if (fotos == null || fotos.isEmpty()) {
+                throw new IllegalArgumentException("É obrigatório enviar pelo menos 1 foto.");
+            }
+
+            if (fotos.size() > 4) {
+                throw new IllegalArgumentException("Máximo de 4 fotos permitido.");
+            }
+
+            for (FotoUsuarioDTO dto : fotos) {
+                FotoUsuario foto = new FotoUsuario(dto.getUrl(), dto.isFotoPrincipal());
+                usuario.adicionarFoto(foto);
+            }
+
+            usuario.validarFotosAntesAtivarConta();
+            Usuario atualizado = usuarioService.atualizar(usuarioId, usuario);
+            return ResponseEntity.ok(converterParaResposta(atualizado));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    private UsuarioRespostaDTO converterParaResposta(Usuario usuario) {
+        UsuarioRespostaDTO dto = new UsuarioRespostaDTO();
+        dto.setId(usuario.getId());
+        dto.setNome(usuario.getNome());
+        dto.setApelido(usuario.getApelido());
+        dto.setEmail(usuario.getEmail());
+        dto.setDataNascimento(usuario.getDataNascimento());
+        dto.setGeneros(usuario.getGeneros());
+        dto.setPerfilAtivo(usuario.isPerfilAtivo());
+
+        if (usuario.getFotos() != null) {
+            dto.setFotos(usuario.getFotos().stream()
+                    .map(f -> new FotoUsuarioDTO(f.getUrl(), f.isFotoPrincipal()))
+                    .collect(Collectors.toList()));
+        }
+
+        return dto;
+    }
+}

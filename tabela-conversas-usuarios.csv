@@ -1,0 +1,4 @@
+﻿Tabela,Campos,Relacionamentos
+Chat,"id, match_id, criado_em",FK → Match.id
+Mensagem,"id, chat_id, remetente_id, conteudo, data_envio, lida","FK → Chat.id, Usuario.id"
+Encontro,"id, match_id, local, data, status (confirmado, cancelado)",FK → Match.id

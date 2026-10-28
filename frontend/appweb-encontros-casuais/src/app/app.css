@@ -1,0 +1,41 @@
+:host {
+	display: block;
+	min-height: 100%;
+}
+
+.app-shell {
+	min-height: 100vh;
+	background: linear-gradient(135deg, #f9f5ed 0%, #eef5f1 52%, #e8f0f5 100%);
+}
+
+.app-header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	max-width: 1180px;
+	margin: 0 auto;
+	padding: 28px 32px 10px;
+}
+
+.brand-mark {
+	color: #153f3b;
+	font-family: Georgia, serif;
+	font-size: 1.65rem;
+	font-weight: 700;
+}
+
+.header-note {
+	color: #52706b;
+	font-size: 0.8rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+	.app-header {
+		align-items: flex-start;
+		flex-direction: column;
+		gap: 6px;
+		padding-inline: 20px;
+	}
+}
